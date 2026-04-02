@@ -4,7 +4,7 @@ export type Status = 'todo' | 'in-progress' | 'review' | 'done';
 export interface TeamMember {
   id: string;
   name: string;
-  avatar: string;
+  avatar?: string;
 }
 
 export interface SubTask {

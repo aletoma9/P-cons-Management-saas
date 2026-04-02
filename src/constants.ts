@@ -1,10 +1,10 @@
 import { Project, Task, TeamMember } from './types';
 
 export const TEAM_MEMBERS: TeamMember[] = [
-  { id: 'm1', name: 'Alex', avatar: 'https://i.pravatar.cc/150?u=alex' },
-  { id: 'm2', name: 'Sarah', avatar: 'https://i.pravatar.cc/150?u=sarah' },
-  { id: 'm3', name: 'Mike', avatar: 'https://i.pravatar.cc/150?u=mike' },
-  { id: 'm4', name: 'Emma', avatar: 'https://i.pravatar.cc/150?u=emma' },
+  { id: 'm1', name: 'Alex' },
+  { id: 'm2', name: 'Sarah' },
+  { id: 'm3', name: 'Mike' },
+  { id: 'm4', name: 'Emma' },
 ];
 
 export const INITIAL_PROJECTS: Project[] = [

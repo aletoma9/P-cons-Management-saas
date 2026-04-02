@@ -371,6 +371,12 @@ const SidebarItem = ({
   );
 };
 
+const UserAvatar = ({ className, size = 16 }: { className?: string, size?: number }) => (
+  <div className={cn("bg-slate-800 rounded-full flex items-center justify-center text-slate-400 shrink-0 border border-slate-700", className)}>
+    <User size={size} />
+  </div>
+);
+
 const PriorityBadge = ({ priority }: { priority: Priority }) => {
   const styles = {
     low: "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -593,12 +599,7 @@ const TaskCard = ({
                     {sub.title}
                   </span>
                   {sub.assignee && (
-                    <img 
-                      src={sub.assignee.avatar} 
-                      className="ml-auto w-4 h-4 rounded-full border border-slate-700 opacity-60 group-hover/sub:opacity-100 transition-opacity" 
-                      title={sub.assignee.name} 
-                      alt={sub.assignee.name}
-                    />
+                    <UserAvatar className="ml-auto w-4 h-4" size={10} />
                   )}
                 </button>
               ))}
@@ -691,11 +692,7 @@ const TaskCard = ({
             <Calendar size={12} />
             <span className="text-[10px] font-medium">{task.dueDate}</span>
           </div>
-          <img 
-            src={task.assignee.avatar} 
-            alt={task.assignee.name} 
-            className="w-6 h-6 rounded-full border border-slate-700"
-          />
+          <UserAvatar className="w-6 h-6" size={14} />
         </div>
       </div>
     </div>
@@ -784,8 +781,7 @@ export default function App() {
     icon: 'Layout'
   });
   const [newMember, setNewMember] = useState({
-    name: '',
-    avatar: 'https://i.pravatar.cc/150?u=' + Math.random().toString(36).substr(2, 5)
+    name: ''
   });
   const [tempSubtask, setTempSubtask] = useState('');
   const [tempSubtaskAssigneeId, setTempSubtaskAssigneeId] = useState<string>('');
@@ -874,14 +870,13 @@ export default function App() {
     }
 
     setIsTeamModalOpen(false);
-    setNewMember({ name: '', avatar: 'https://i.pravatar.cc/150?u=' + Math.random().toString(36).substr(2, 5) });
+    setNewMember({ name: '' });
   };
 
   const openEditMemberModal = (member: TeamMember) => {
     setEditingMemberId(member.id);
     setNewMember({
-      name: member.name,
-      avatar: member.avatar
+      name: member.name
     });
     setIsTeamModalOpen(true);
   };
@@ -1472,7 +1467,7 @@ export default function App() {
                             <span className="text-xs text-slate-300">{sub.title}</span>
                             {sub.assignee && (
                               <div className="flex items-center gap-1 bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-700/50">
-                                <img src={sub.assignee.avatar} className="w-3 h-3 rounded-full" alt={sub.assignee.name} />
+                                <UserAvatar className="w-3 h-3" size={8} />
                                 <span className="text-[9px] text-slate-500 font-medium">{sub.assignee.name}</span>
                               </div>
                             )}
@@ -1569,13 +1564,7 @@ export default function App() {
                 <div className="p-6 space-y-6">
                   <div className="flex justify-center">
                     <div className="relative group">
-                      <img src={newMember.avatar} className="w-24 h-24 rounded-full border-4 border-slate-800" alt="Avatar Preview" />
-                      <button 
-                        onClick={() => setNewMember(prev => ({ ...prev, avatar: 'https://i.pravatar.cc/150?u=' + Math.random().toString(36).substr(2, 5) }))}
-                        className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full text-white shadow-lg hover:bg-blue-500 transition-all"
-                      >
-                        <Settings size={14} />
-                      </button>
+                      <UserAvatar className="w-24 h-24 border-4 border-slate-800" size={48} />
                     </div>
                   </div>
 
@@ -1985,7 +1974,7 @@ export default function App() {
                     return (
                       <div key={member.id} className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-all group flex flex-col">
                         <div className="flex items-center gap-4 mb-6">
-                          <img src={member.avatar} className="w-16 h-16 rounded-full border-2 border-slate-800" alt={member.name} />
+                          <UserAvatar className="w-16 h-16 border-2 border-slate-800" size={32} />
                           <div className="flex-1 min-w-0">
                             <h3 className="text-lg font-bold text-white truncate">{member.name}</h3>
                             <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">Team Member</p>
@@ -2182,7 +2171,7 @@ export default function App() {
                               </span>
                               {sub.assignee && (
                                 <div className="flex items-center gap-1.5 ml-auto bg-slate-900/50 px-2 py-0.5 rounded-full border border-slate-800/50">
-                                  <img src={sub.assignee.avatar} className="w-3 h-3 rounded-full" alt={sub.assignee.name} />
+                                  <UserAvatar className="w-3 h-3" size={8} />
                                   <span className="text-[9px] text-slate-500 font-medium">{sub.assignee.name}</span>
                                 </div>
                               )}
@@ -2300,13 +2289,7 @@ export default function App() {
                                     {sub.title}
                                   </span>
                                   {sub.assignee && (
-                                    <img 
-                                      src={sub.assignee.avatar} 
-                                      className="w-3.5 h-3.5 rounded-full border border-slate-800 opacity-60 group-hover/sub:opacity-100 transition-opacity" 
-                                      title={sub.assignee.name} 
-                                      alt={sub.assignee.name}
-                                      referrerPolicy="no-referrer"
-                                    />
+                                    <UserAvatar className="w-3.5 h-3.5 opacity-60 group-hover/sub:opacity-100 transition-opacity" size={10} />
                                   )}
                                 </div>
                               ))}
@@ -2328,7 +2311,7 @@ export default function App() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <img src={task.assignee.avatar} className="w-6 h-6 rounded-full" alt={task.assignee.name} />
+                            <UserAvatar className="w-6 h-6" size={14} />
                             <span className="text-xs text-slate-400">{task.assignee.name}</span>
                           </div>
                         </td>
