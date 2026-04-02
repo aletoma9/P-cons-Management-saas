@@ -705,7 +705,9 @@ const TaskCard = ({
 // --- Main App ---
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('pcons_isLoggedIn') === 'true';
+  });
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -714,17 +716,52 @@ export default function App() {
     e.preventDefault();
     if (loginUser === 'P-Cons2026' && loginPass === 'Estate26!') {
       setIsLoggedIn(true);
+      localStorage.setItem('pcons_isLoggedIn', 'true');
       setLoginError('');
     } else {
       setLoginError('Credenziali non valide');
     }
   };
 
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [activeProject, setActiveProject] = useState<string>(INITIAL_PROJECTS[0].id);
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('pcons_isLoggedIn');
+  };
+
+  const [projects, setProjects] = useState<Project[]>(() => {
+    const saved = localStorage.getItem('pcons_projects');
+    return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
+  });
+  const [activeProject, setActiveProject] = useState<string>(() => {
+    const saved = localStorage.getItem('pcons_activeProject');
+    return saved && projects.some(p => p.id === saved) ? saved : projects[0]?.id || INITIAL_PROJECTS[0].id;
+  });
   const [view, setView] = useState<ViewType>('kanban');
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(TEAM_MEMBERS);
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const saved = localStorage.getItem('pcons_tasks');
+    return saved ? JSON.parse(saved) : INITIAL_TASKS;
+  });
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
+    const saved = localStorage.getItem('pcons_teamMembers');
+    return saved ? JSON.parse(saved) : TEAM_MEMBERS;
+  });
+
+  // Persistence
+  useEffect(() => {
+    localStorage.setItem('pcons_projects', JSON.stringify(projects));
+  }, [projects]);
+
+  useEffect(() => {
+    localStorage.setItem('pcons_tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
+  useEffect(() => {
+    localStorage.setItem('pcons_teamMembers', JSON.stringify(teamMembers));
+  }, [teamMembers]);
+
+  useEffect(() => {
+    localStorage.setItem('pcons_activeProject', activeProject);
+  }, [activeProject]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -1315,10 +1352,17 @@ export default function App() {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-slate-800 flex justify-center">
+        <div className="p-4 border-t border-slate-800 space-y-2">
           <button className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-500 hover:text-white flex items-center gap-2 w-full px-4">
             <Settings size={18} />
             <span className="text-sm font-medium">Impostazioni</span>
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="p-2 rounded-lg hover:bg-rose-500/10 transition-colors text-slate-500 hover:text-rose-400 flex items-center gap-2 w-full px-4"
+          >
+            <Lock size={18} />
+            <span className="text-sm font-medium">Logout</span>
           </button>
         </div>
       </aside>
@@ -1340,6 +1384,10 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Dati Salvati Localmente</span>
+            </div>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all shadow-lg shadow-blue-900/20 active:scale-95"
