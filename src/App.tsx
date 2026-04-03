@@ -52,6 +52,7 @@ import {
 } from 'date-fns';
 import { it } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { cn } from './lib/utils';
 import { Project, Task, ViewType, Status, Priority, SubTask, TeamMember } from './types';
 import { INITIAL_PROJECTS, INITIAL_TASKS, TEAM_MEMBERS } from './constants';
@@ -705,6 +706,8 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem('pcons_isLoggedIn') === 'true';
   });
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+  const [lastCloudSync, setLastCloudSync] = useState<string | null>(null);
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -759,6 +762,60 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('pcons_activeProject', activeProject);
   }, [activeProject]);
+
+  // Supabase Syncing
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !isLoggedIn) return;
+
+    const syncToCloud = async () => {
+      setIsCloudSyncing(true);
+      try {
+        // Simple sync: push current state to a single 'app_state' table for now
+        // In a real app, we'd have separate tables for tasks, projects, etc.
+        const { error } = await supabase!.from('app_state').upsert({
+          id: 'current_state', // Single row for simplicity in this demo
+          projects,
+          tasks,
+          team_members: teamMembers,
+          updated_at: new Date().toISOString()
+        });
+
+        if (error) throw error;
+        setLastCloudSync(new Date().toLocaleTimeString());
+      } catch (err) {
+        console.error('Cloud sync error:', err);
+      } finally {
+        setIsCloudSyncing(false);
+      }
+    };
+
+    const timeout = setTimeout(syncToCloud, 2000); // Debounce sync
+    return () => clearTimeout(timeout);
+  }, [projects, tasks, teamMembers, isLoggedIn]);
+
+  // Initial Cloud Load
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !isLoggedIn) return;
+
+    const loadFromCloud = async () => {
+      try {
+        const { data, error } = await supabase!.from('app_state').select('*').eq('id', 'current_state').single();
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows found"
+
+        if (data) {
+          setProjects(data.projects);
+          setTasks(data.tasks);
+          setTeamMembers(data.team_members);
+          setLastCloudSync(new Date(data.updated_at).toLocaleTimeString());
+        }
+      } catch (err) {
+        console.error('Cloud load error:', err);
+      }
+    };
+
+    loadFromCloud();
+  }, [isLoggedIn]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -1379,10 +1436,19 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Dati Salvati Localmente</span>
-            </div>
+            {isSupabaseConfigured() ? (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
+                <div className={cn("w-1.5 h-1.5 rounded-full bg-blue-400", isCloudSyncing && "animate-pulse")} />
+                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
+                  {isCloudSyncing ? 'Sincronizzazione...' : `Cloud Sync: ${lastCloudSync || 'Attivo'}`}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Dati Salvati Localmente</span>
+              </div>
+            )}
             <button 
               onClick={() => setIsModalOpen(true)}
               className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all shadow-lg shadow-blue-900/20 active:scale-95"
