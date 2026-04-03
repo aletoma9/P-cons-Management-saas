@@ -33,7 +33,8 @@ import {
   GripVertical,
   Copy,
   Eye,
-  EyeOff
+  EyeOff,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -708,6 +709,8 @@ export default function App() {
   });
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const [lastCloudSync, setLastCloudSync] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState(false);
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -765,15 +768,14 @@ export default function App() {
 
   // Supabase Syncing
   useEffect(() => {
-    if (!isSupabaseConfigured() || !isLoggedIn) return;
+    if (!isSupabaseConfigured() || !isLoggedIn || !hasLoadedFromCloud) return;
 
     const syncToCloud = async () => {
       setIsCloudSyncing(true);
+      setSyncError(null);
       try {
-        // Simple sync: push current state to a single 'app_state' table for now
-        // In a real app, we'd have separate tables for tasks, projects, etc.
         const { error } = await supabase!.from('app_state').upsert({
-          id: 'current_state', // Single row for simplicity in this demo
+          id: 'current_state',
           projects,
           tasks,
           team_members: teamMembers,
@@ -782,8 +784,9 @@ export default function App() {
 
         if (error) throw error;
         setLastCloudSync(new Date().toLocaleTimeString());
-      } catch (err) {
+      } catch (err: any) {
         console.error('Cloud sync error:', err);
+        setSyncError(err.message || 'Errore di sincronizzazione');
       } finally {
         setIsCloudSyncing(false);
       }
@@ -791,16 +794,24 @@ export default function App() {
 
     const timeout = setTimeout(syncToCloud, 2000); // Debounce sync
     return () => clearTimeout(timeout);
-  }, [projects, tasks, teamMembers, isLoggedIn]);
+  }, [projects, tasks, teamMembers, isLoggedIn, hasLoadedFromCloud]);
 
   // Initial Cloud Load
   useEffect(() => {
-    if (!isSupabaseConfigured() || !isLoggedIn) return;
+    if (!isSupabaseConfigured() || !isLoggedIn) {
+      setHasLoadedFromCloud(true);
+      return;
+    }
 
     const loadFromCloud = async () => {
       try {
         const { data, error } = await supabase!.from('app_state').select('*').eq('id', 'current_state').single();
-        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows found"
+        
+        if (error && error.code !== 'PGRST116') {
+          // If it's a real error (not just "no rows"), log it
+          console.error('Cloud load error:', error);
+          setSyncError("Impossibile caricare dal cloud");
+        }
 
         if (data) {
           setProjects(data.projects);
@@ -809,13 +820,36 @@ export default function App() {
           setLastCloudSync(new Date(data.updated_at).toLocaleTimeString());
         }
       } catch (err) {
-        console.error('Cloud load error:', err);
+        console.error('Cloud load exception:', err);
+      } finally {
+        setHasLoadedFromCloud(true);
       }
     };
 
     loadFromCloud();
   }, [isLoggedIn]);
 
+  // Manual Sync Function
+  const handleManualSync = async () => {
+    if (!isSupabaseConfigured() || !isLoggedIn) return;
+    setIsCloudSyncing(true);
+    setSyncError(null);
+    try {
+      const { error } = await supabase!.from('app_state').upsert({
+        id: 'current_state',
+        projects,
+        tasks,
+        team_members: teamMembers,
+        updated_at: new Date().toISOString()
+      });
+      if (error) throw error;
+      setLastCloudSync(new Date().toLocaleTimeString());
+    } catch (err: any) {
+      setSyncError(err.message || 'Errore di sincronizzazione');
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -1437,11 +1471,33 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4">
             {isSupabaseConfigured() ? (
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
-                <div className={cn("w-1.5 h-1.5 rounded-full bg-blue-400", isCloudSyncing && "animate-pulse")} />
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
-                  {isCloudSyncing ? 'Sincronizzazione...' : `Cloud Sync: ${lastCloudSync || 'Attivo'}`}
-                </span>
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "flex items-center gap-2 px-3 py-1 border rounded-full transition-colors",
+                  syncError 
+                    ? "bg-red-500/10 border-red-500/20" 
+                    : "bg-blue-500/10 border-blue-500/20"
+                )}>
+                  <div className={cn(
+                    "w-1.5 h-1.5 rounded-full", 
+                    syncError ? "bg-red-500" : "bg-blue-400",
+                    isCloudSyncing && "animate-pulse"
+                  )} />
+                  <span className={cn(
+                    "text-[10px] font-bold uppercase tracking-wider",
+                    syncError ? "text-red-400" : "text-blue-400"
+                  )}>
+                    {syncError ? `Errore: ${syncError}` : (isCloudSyncing ? 'Sincronizzazione...' : `Cloud Sync: ${lastCloudSync || 'Attivo'}`)}
+                  </span>
+                </div>
+                <button 
+                  onClick={handleManualSync}
+                  disabled={isCloudSyncing}
+                  className="p-1.5 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors disabled:opacity-50"
+                  title="Sincronizza ora"
+                >
+                  <RefreshCw className={cn("w-3.5 h-3.5", isCloudSyncing && "animate-spin")} />
+                </button>
               </div>
             ) : (
               <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
