@@ -34,7 +34,9 @@ import {
   Copy,
   Eye,
   EyeOff,
-  RefreshCw
+  RefreshCw,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -54,26 +56,31 @@ import {
 import { it } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { ThemeProvider, useTheme } from './lib/ThemeContext';
 import { cn } from './lib/utils';
 import { Project, Task, ViewType, Status, Priority, SubTask, TeamMember } from './types';
 import { INITIAL_PROJECTS, INITIAL_TASKS, TEAM_MEMBERS } from './constants';
 
 const LoginScreen = ({ onLogin, user, setUser, pass, setPass, error }: any) => {
+  const { isDarkMode } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#0f1115] flex items-center justify-center p-4">
+    <div className={cn("min-h-screen flex items-center justify-center p-4 transition-colors duration-300", isDarkMode ? "bg-[#0f1115]" : "bg-slate-50")}>
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-[#0a0c10] border border-slate-800 rounded-2xl p-8 shadow-2xl"
+        className={cn(
+          "w-full max-w-md border rounded-2xl p-8 shadow-2xl transition-colors duration-300",
+          isDarkMode ? "bg-[#0a0c10] border-slate-800" : "bg-white border-slate-200"
+        )}
       >
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 mb-4">
             <LayoutDashboard size={32} className="text-white" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-2xl font-semibold tracking-tight text-white">P</span>
+            <span className={cn("text-2xl font-semibold tracking-tight", isDarkMode ? "text-white" : "text-slate-900")}>P</span>
             <div className="flex items-center gap-1 px-0.5">
               <div className="flex flex-col gap-1">
                 <div className="w-1.5 h-1.5 bg-[#9b2226] rounded-full" />
@@ -81,21 +88,26 @@ const LoginScreen = ({ onLogin, user, setUser, pass, setPass, error }: any) => {
               </div>
               <div className="w-1.5 h-1.5 bg-[#9b2226] rounded-full" />
             </div>
-            <span className="text-2xl font-semibold tracking-tight text-white">CONS</span>
+            <span className={cn("text-2xl font-semibold tracking-tight", isDarkMode ? "text-white" : "text-slate-900")}>CONS</span>
           </div>
-          <p className="text-slate-500 text-sm mt-2">Accedi per continuare</p>
+          <p className={cn("text-sm mt-2", isDarkMode ? "text-slate-500" : "text-slate-400")}>Accedi per continuare</p>
         </div>
 
         <form onSubmit={onLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Utente</label>
+            <label className={cn("block text-xs font-bold uppercase tracking-widest mb-2 px-1", isDarkMode ? "text-slate-500" : "text-slate-400")}>Utente</label>
             <div className="relative group">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={18} />
               <input 
                 type="text" 
                 value={user}
                 onChange={(e) => setUser(e.target.value)}
-                className="w-full bg-slate-900/50 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                className={cn(
+                  "w-full border rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-1 transition-all",
+                  isDarkMode 
+                    ? "bg-slate-900/50 border-slate-800 text-white focus:border-blue-500/50 focus:ring-blue-500/50" 
+                    : "bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500/50 focus:ring-blue-500/50"
+                )}
                 placeholder="Nome utente"
                 required
               />
@@ -103,21 +115,26 @@ const LoginScreen = ({ onLogin, user, setUser, pass, setPass, error }: any) => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Password</label>
+            <label className={cn("block text-xs font-bold uppercase tracking-widest mb-2 px-1", isDarkMode ? "text-slate-500" : "text-slate-400")}>Password</label>
             <div className="relative group">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={18} />
               <input 
                 type={showPassword ? "text" : "password"} 
                 value={pass}
                 onChange={(e) => setPass(e.target.value)}
-                className="w-full bg-slate-900/50 border border-slate-800 rounded-xl py-3 pl-10 pr-12 text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                className={cn(
+                  "w-full border rounded-xl py-3 pl-10 pr-12 focus:outline-none focus:ring-1 transition-all",
+                  isDarkMode 
+                    ? "bg-slate-900/50 border-slate-800 text-white focus:border-blue-500/50 focus:ring-blue-500/50" 
+                    : "bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500/50 focus:ring-blue-500/50"
+                )}
                 placeholder="••••••••"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
+                className={cn("absolute right-3 top-1/2 -translate-y-1/2 transition-colors p-1", isDarkMode ? "text-slate-500 hover:text-slate-300" : "text-slate-400 hover:text-slate-600")}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -150,6 +167,7 @@ const LoginScreen = ({ onLogin, user, setUser, pass, setPass, error }: any) => {
 // --- Components ---
 
 const CalendarView = ({ tasks, onEditTask }: { tasks: Task[], onEditTask: (task: Task) => void }) => {
+  const { isDarkMode } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const monthStart = startOfMonth(currentDate);
@@ -166,34 +184,52 @@ const CalendarView = ({ tasks, onEditTask }: { tasks: Task[], onEditTask: (task:
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
   return (
-    <div className="h-full flex flex-col bg-slate-900/30 border border-slate-800 rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
-        <h3 className="text-lg font-bold text-white tracking-tight capitalize">
+    <div className={cn(
+      "h-full flex flex-col border rounded-2xl overflow-hidden",
+      isDarkMode ? "bg-slate-900/30 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+    )}>
+      <div className={cn(
+        "flex items-center justify-between p-4 border-b",
+        isDarkMode ? "border-slate-800 bg-slate-900/50" : "border-slate-100 bg-slate-50"
+      )}>
+        <h3 className={cn("text-lg font-bold tracking-tight capitalize", isDarkMode ? "text-white" : "text-slate-900")}>
           {format(currentDate, 'MMMM yyyy', { locale: it })}
         </h3>
         <div className="flex items-center gap-2">
           <button 
             onClick={prevMonth}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-all"
+            className={cn(
+              "p-1.5 rounded-lg transition-all",
+              isDarkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"
+            )}
           >
             <ChevronRight size={18} className="rotate-180" />
           </button>
           <button 
             onClick={() => setCurrentDate(new Date())}
-            className="px-2.5 py-1 text-[11px] font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+            className={cn(
+              "px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all",
+              isDarkMode ? "text-slate-400 hover:text-white hover:bg-slate-800" : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+            )}
           >
             Oggi
           </button>
           <button 
             onClick={nextMonth}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-all"
+            className={cn(
+              "p-1.5 rounded-lg transition-all",
+              isDarkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"
+            )}
           >
             <ChevronRight size={18} />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 bg-slate-900/50 border-b border-slate-800">
+      <div className={cn(
+        "grid grid-cols-7 border-b",
+        isDarkMode ? "bg-slate-900/50 border-slate-800" : "bg-slate-50 border-slate-100"
+      )}>
         {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(day => (
           <div key={day} className="py-2 text-center text-[9px] font-bold text-slate-500 uppercase tracking-widest">
             {day}
@@ -215,35 +251,42 @@ const CalendarView = ({ tasks, onEditTask }: { tasks: Task[], onEditTask: (task:
             <div 
               key={idx} 
               className={cn(
-                "min-h-[90px] p-1.5 border-r border-b border-slate-800/50 transition-colors",
-                !isSameMonth(day, monthStart) && "bg-slate-950/20",
-                isSameDay(day, new Date()) && "bg-blue-500/5"
+                "h-[120px] p-1.5 border-r border-b transition-colors flex flex-col",
+                isDarkMode ? "border-slate-800/50" : "border-slate-100",
+                !isSameMonth(day, monthStart) && (isDarkMode ? "bg-slate-950/20" : "bg-slate-50/50"),
+                isSameDay(day, new Date()) && (isDarkMode ? "bg-blue-500/5" : "bg-blue-50/50")
               )}
             >
-              <div className="flex justify-between items-center mb-1">
+              <div className="flex justify-between items-center mb-1 shrink-0">
                 <span className={cn(
                   "text-[11px] font-medium",
-                  !isSameMonth(day, monthStart) ? "text-slate-700" : "text-slate-400",
+                  !isSameMonth(day, monthStart) 
+                    ? (isDarkMode ? "text-slate-700" : "text-slate-300") 
+                    : (isDarkMode ? "text-slate-400" : "text-slate-600"),
                   isSameDay(day, new Date()) && "text-blue-400 font-bold"
                 )}>
                   {format(day, 'd')}
                 </span>
                 {dayTasks.length > 0 && (
-                  <span className="text-[8px] font-bold text-slate-600 bg-slate-800 px-1 py-0.5 rounded-full">
+                  <span className={cn(
+                    "text-[8px] font-bold px-1 py-0.5 rounded-full",
+                    isDarkMode ? "text-slate-400 bg-slate-800" : "text-slate-600 bg-slate-100"
+                  )}>
                     {dayTasks.length}
                   </span>
                 )}
               </div>
-              <div className="space-y-0.5">
+              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-0.5 pr-0.5">
                 {dayTasks.map(task => (
                   <button
                     key={task.id}
                     onClick={() => onEditTask(task)}
                     className={cn(
-                      "w-full text-left p-1 rounded-md text-[9px] font-medium truncate transition-all border border-transparent hover:border-white/10",
-                      task.priority === 'high' ? "bg-rose-500/10 text-rose-400" :
-                      task.priority === 'medium' ? "bg-amber-500/10 text-amber-400" :
-                      "bg-slate-800/50 text-slate-400"
+                      "w-full text-left p-1 rounded-md text-[9px] font-medium truncate transition-all border border-transparent",
+                      isDarkMode ? "hover:border-white/10" : "hover:border-black/10",
+                      task.priority === 'high' ? (isDarkMode ? "bg-rose-500/10 text-rose-400" : "bg-rose-100 text-rose-900") :
+                      task.priority === 'medium' ? (isDarkMode ? "bg-amber-500/10 text-amber-400" : "bg-amber-100 text-amber-900") :
+                      (isDarkMode ? "bg-slate-800/50 text-slate-400" : "bg-slate-100 text-slate-900")
                     )}
                   >
                     {task.title}
@@ -278,6 +321,7 @@ const SidebarItem = ({
   onDelete?: () => void,
   key?: any
 }) => {
+  const { isDarkMode } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
@@ -295,13 +339,15 @@ const SidebarItem = ({
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200",
           active 
-            ? "bg-white/10 text-white shadow-sm" 
-            : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            ? (isDarkMode ? "bg-white/10 text-white shadow-sm" : "bg-blue-50 text-black font-bold shadow-sm") 
+            : (isDarkMode ? "text-slate-400 hover:bg-white/5 hover:text-slate-200" : "text-black hover:bg-slate-100")
         )}
       >
         <div className={cn(
           "p-1.5 rounded-md",
-          active ? "bg-white/10" : "bg-slate-800 group-hover:bg-slate-700"
+          active 
+            ? (isDarkMode ? "bg-white/10" : "bg-blue-100") 
+            : (isDarkMode ? "bg-slate-800 group-hover:bg-slate-700" : "bg-slate-100 group-hover:bg-slate-200")
         )}>
           <Icon size={16} style={{ color: color || 'inherit' }} />
         </div>
@@ -310,7 +356,7 @@ const SidebarItem = ({
         {active && !onEdit && (
           <motion.div 
             layoutId="active-pill"
-            className="w-1.5 h-1.5 rounded-full bg-blue-400"
+            className={cn("w-1.5 h-1.5 rounded-full", isDarkMode ? "bg-blue-400" : "bg-blue-600")}
           />
         )}
       </button>
@@ -323,7 +369,8 @@ const SidebarItem = ({
               setShowMenu(!showMenu);
             }}
             className={cn(
-              "p-1 rounded-md hover:bg-white/10 text-slate-500 hover:text-slate-200 transition-all",
+              "p-1 rounded-md transition-all",
+              isDarkMode ? "hover:bg-white/10 text-slate-500 hover:text-slate-200" : "hover:bg-slate-200 text-slate-400 hover:text-slate-600",
               showMenu ? "opacity-100" : "opacity-0 group-hover/sidebar:opacity-100"
             )}
           >
@@ -336,7 +383,10 @@ const SidebarItem = ({
                 initial={{ opacity: 0, scale: 0.95, y: -10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                className="absolute right-0 top-full mt-1 w-32 bg-slate-900 border border-slate-800 rounded-lg shadow-2xl z-[70] overflow-hidden"
+                className={cn(
+                  "absolute right-0 top-full mt-1 w-32 border rounded-lg shadow-2xl z-[70] overflow-hidden",
+                  isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                )}
               >
                 {onEdit && (
                   <button 
@@ -345,10 +395,10 @@ const SidebarItem = ({
                       onEdit();
                       setShowMenu(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2"
+                    className={cn("w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2", isDarkMode ? "text-slate-300 hover:bg-slate-800 hover:text-white" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900")}
                   >
                     <Edit2 size={12} />
-                    Edit
+                    Modifica
                   </button>
                 )}
                 {onDelete && (
@@ -373,20 +423,28 @@ const SidebarItem = ({
   );
 };
 
-const UserAvatar = ({ className, size = 16 }: { className?: string, size?: number }) => (
-  <div className={cn("bg-slate-800 rounded-full flex items-center justify-center text-slate-400 shrink-0 border border-slate-700", className)}>
-    <User size={size} />
-  </div>
-);
+const UserAvatar = ({ className, size = 16 }: { className?: string, size?: number }) => {
+  const { isDarkMode } = useTheme();
+  return (
+    <div className={cn(
+      "rounded-full flex items-center justify-center shrink-0 border transition-colors", 
+      isDarkMode ? "bg-slate-800 text-slate-400 border-slate-700" : "bg-slate-100 text-slate-500 border-slate-200",
+      className
+    )}>
+      <User size={size} />
+    </div>
+  );
+};
 
 const PriorityBadge = ({ priority }: { priority: Priority }) => {
+  const { isDarkMode } = useTheme();
   const styles = {
-    low: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    medium: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    high: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    low: isDarkMode ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-blue-50 text-blue-600 border-blue-100",
+    medium: isDarkMode ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-amber-50 text-amber-600 border-amber-100",
+    high: isDarkMode ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-rose-50 text-rose-600 border-rose-100",
   };
   return (
-    <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border", styles[priority])}>
+    <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors", styles[priority])}>
       {priority}
     </span>
   );
@@ -417,6 +475,7 @@ const TaskCard = ({
   provided?: any,
   isDragging?: boolean
 }) => {
+  const { isDarkMode } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -457,14 +516,17 @@ const TaskCard = ({
     >
       <div
         className={cn(
-          "bg-slate-800/50 border border-slate-700/50 p-4 rounded-xl hover:border-slate-600 transition-all duration-200",
-          isDragging && "shadow-2xl border-blue-500/50 bg-slate-800 ring-2 ring-blue-500/20 scale-[1.02]",
+          "p-4 rounded-xl border transition-all duration-200",
+          isDarkMode 
+            ? "bg-slate-800/50 border-slate-700/50 hover:border-slate-600" 
+            : "bg-white border-slate-200 hover:border-slate-300 shadow-sm",
+          isDragging && (isDarkMode ? "shadow-2xl border-blue-500/50 bg-slate-800" : "shadow-lg border-blue-400 bg-white"),
           "cursor-grab active:cursor-grabbing"
         )}
       >
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-2">
-            <GripVertical size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+            <GripVertical size={14} className={cn("transition-colors", isDarkMode ? "text-slate-600 group-hover:text-slate-400" : "text-slate-300 group-hover:text-slate-500")} />
             <PriorityBadge priority={task.priority} />
           </div>
           <div className="flex items-center gap-1">
@@ -473,7 +535,7 @@ const TaskCard = ({
                 e.stopPropagation();
                 setIsCommenting(!isCommenting);
               }}
-              className="text-slate-500 hover:text-blue-400 p-1 rounded-md hover:bg-slate-700/50 transition-colors"
+              className={cn("p-1 rounded-md transition-colors", isDarkMode ? "text-slate-500 hover:text-blue-400 hover:bg-slate-700/50" : "text-slate-400 hover:text-blue-600 hover:bg-slate-100")}
               title="Add comment"
             >
               <MessageSquare size={16} />
@@ -484,7 +546,7 @@ const TaskCard = ({
                   e.stopPropagation();
                   setShowMenu(!showMenu);
                 }}
-                className="text-slate-500 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-slate-700/50"
+                className={cn("opacity-0 group-hover:opacity-100 transition-all p-1 rounded-md", isDarkMode ? "text-slate-500 hover:text-slate-300 hover:bg-slate-700/50" : "text-slate-400 hover:text-slate-600 hover:bg-slate-100")}
               >
                 <MoreHorizontal size={16} />
               </button>
@@ -496,41 +558,48 @@ const TaskCard = ({
                       className="fixed inset-0 z-10" 
                       onClick={() => setShowMenu(false)} 
                     />
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className="absolute right-0 top-full mt-1 w-32 bg-slate-900 border border-slate-800 rounded-lg shadow-2xl z-20 overflow-hidden"
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      className={cn(
+                        "absolute right-0 mt-2 w-48 border rounded-xl shadow-2xl z-20 py-1 overflow-hidden",
+                        isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                      )}
                     >
                       <button 
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           onEdit(task);
                           setShowMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2"
+                        className={cn("w-full px-4 py-2 text-sm flex items-center gap-2 transition-colors", isDarkMode ? "text-slate-300 hover:bg-white/5" : "text-slate-600 hover:bg-slate-50")}
                       >
-                        <Settings size={12} />
-                        Edit Task
+                        <Edit2 size={14} />
+                        Modifica
                       </button>
                       <button 
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           onDuplicate(task);
                           setShowMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2"
+                        className={cn("w-full px-4 py-2 text-sm flex items-center gap-2 transition-colors", isDarkMode ? "text-slate-300 hover:bg-white/5" : "text-slate-600 hover:bg-slate-50")}
                       >
-                        <Copy size={12} />
-                        Duplicate
+                        <Copy size={14} />
+                        Duplica
                       </button>
+                      <div className={cn("h-px my-1", isDarkMode ? "bg-slate-800" : "bg-slate-100")} />
                       <button 
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           onDelete(task.id);
                           setShowMenu(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs font-medium text-rose-400 hover:bg-rose-500/10 transition-colors flex items-center gap-2"
+                        className="w-full px-4 py-2 text-sm flex items-center gap-2 text-rose-400 hover:bg-rose-500/10 transition-colors"
                       >
-                        <AlertCircle size={12} />
-                        Delete
+                        <Trash2 size={14} />
+                        Elimina
                       </button>
                     </motion.div>
                   </>
@@ -548,25 +617,25 @@ const TaskCard = ({
             }}
             className={cn(
               "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0",
-              task.status === 'done' ? "bg-emerald-500 border-emerald-500" : "border-slate-700 hover:border-slate-500"
+              task.status === 'done' ? "bg-emerald-500 border-emerald-500" : (isDarkMode ? "border-slate-700 hover:border-slate-500" : "border-slate-300 hover:border-slate-400")
             )}
           >
             {task.status === 'done' && <CheckCircle2 size={12} className="text-white" />}
           </button>
-          <h4 className={cn("text-slate-100 font-semibold line-clamp-2", task.status === 'done' && "text-slate-500 line-through")}>{task.title}</h4>
+          <h4 className={cn("font-semibold line-clamp-2", isDarkMode ? (task.status === 'done' ? "text-slate-500 line-through" : "text-slate-100") : (task.status === 'done' ? "text-slate-400 line-through" : "text-slate-900"))}>{task.title}</h4>
         </div>
-        <p className="text-slate-400 text-xs mb-4 line-clamp-2 leading-relaxed">{task.description}</p>
+        <p className={cn("text-xs mb-4 line-clamp-2 leading-relaxed", isDarkMode ? "text-slate-400" : "text-slate-500")}>{task.description}</p>
         
         {totalSubtasks > 0 && (
           <div className="mb-4 space-y-2">
-            <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
               <div className="flex items-center gap-1.5">
-                <CheckCircle2 size={10} className={cn(progress === 100 ? "text-emerald-400" : "text-slate-500")} />
-                <span>Checklist</span>
+                <CheckCircle2 size={10} className={cn(progress === 100 ? "text-emerald-400" : (isDarkMode ? "text-slate-500" : "text-slate-400"))} />
+                <span className={isDarkMode ? "text-slate-500" : "text-slate-400"}>Checklist</span>
               </div>
-              <span>{completedSubtasks}/{totalSubtasks}</span>
+              <span className={isDarkMode ? "text-slate-400" : "text-slate-600"}>{completedSubtasks}/{totalSubtasks}</span>
             </div>
-            <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden">
+            <div className={cn("h-1 w-full rounded-full overflow-hidden", isDarkMode ? "bg-slate-900" : "bg-slate-100")}>
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
@@ -584,19 +653,19 @@ const TaskCard = ({
                     e.stopPropagation();
                     onToggleSubtask(task.id, sub.id);
                   }}
-                  className="w-full flex items-center gap-2 text-[10px] text-slate-400 hover:text-slate-200 transition-colors text-left group/sub"
+                  className={cn("w-full flex items-center gap-2 text-xs font-bold transition-colors text-left group/sub", isDarkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-700")}
                 >
                   <div className={cn(
                     "w-3 h-3 rounded-sm border flex items-center justify-center transition-all",
                     sub.completed 
                       ? "bg-blue-500 border-blue-500" 
-                      : "border-slate-700 group-hover/sub:border-slate-500"
+                      : (isDarkMode ? "border-slate-700 group-hover/sub:border-slate-500" : "border-slate-300 group-hover/sub:border-slate-400")
                   )}>
                     {sub.completed && <CheckCircle2 size={10} className="text-white" />}
                   </div>
                   <span className={cn(
                     "transition-all",
-                    sub.completed && "line-through opacity-50"
+                    sub.completed && (isDarkMode ? "line-through opacity-50" : "line-through opacity-40")
                   )}>
                     {sub.title}
                   </span>
@@ -617,7 +686,10 @@ const TaskCard = ({
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+              className={cn(
+                "flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500",
+                isDarkMode ? "bg-slate-900 border-slate-700 text-slate-200" : "bg-slate-50 border-slate-200 text-slate-900"
+              )}
               onClick={(e) => e.stopPropagation()}
             />
             <button 
@@ -632,13 +704,16 @@ const TaskCard = ({
 
         {task.comments && task.comments.length > 0 && (
           <div className="mb-4 space-y-2">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className={cn("flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider", isDarkMode ? "text-slate-500" : "text-slate-400")}>
               <MessageSquare size={10} />
               <span>Comments</span>
             </div>
             <div className="space-y-1.5">
               {task.comments.map((comment) => (
-                <div key={comment.id} className="group/comment bg-slate-900/50 border border-slate-700/30 rounded-lg px-2.5 py-1.5 text-[10px] text-slate-300 leading-relaxed relative">
+                <div key={comment.id} className={cn(
+                  "group/comment border rounded-lg px-2.5 py-1.5 text-xs font-bold leading-relaxed relative",
+                  isDarkMode ? "bg-slate-900/50 border-slate-700/30 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-600"
+                )}>
                   {editingCommentId === comment.id ? (
                     <form onSubmit={(e) => handleEditComment(e, comment.id)} className="flex gap-2">
                       <input 
@@ -646,7 +721,10 @@ const TaskCard = ({
                         type="text"
                         value={editingCommentText}
                         onChange={(e) => setEditingCommentText(e.target.value)}
-                        className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-0.5 text-[10px] text-slate-200 focus:outline-none focus:border-blue-500"
+                        className={cn(
+                          "flex-1 border rounded px-2 py-0.5 text-[10px] focus:outline-none focus:border-blue-500",
+                          isDarkMode ? "bg-slate-800 border-slate-600 text-slate-200" : "bg-white border-slate-300 text-slate-900"
+                        )}
                         onClick={(e) => e.stopPropagation()}
                       />
                       <button 
@@ -667,7 +745,7 @@ const TaskCard = ({
                             setEditingCommentId(comment.id);
                             setEditingCommentText(comment.text);
                           }}
-                          className="p-1 text-slate-500 hover:text-blue-400 transition-colors"
+                          className={cn("p-1 transition-colors", isDarkMode ? "text-slate-500 hover:text-blue-400" : "text-slate-400 hover:text-blue-600")}
                         >
                           <Edit2 size={10} />
                         </button>
@@ -676,7 +754,7 @@ const TaskCard = ({
                             e.stopPropagation();
                             onDeleteComment(task.id, comment.id);
                           }}
-                          className="p-1 text-slate-500 hover:text-rose-400 transition-colors"
+                          className={cn("p-1 transition-colors", isDarkMode ? "text-slate-500 hover:text-rose-400" : "text-slate-400 hover:text-rose-600")}
                         >
                           <Trash2 size={10} />
                         </button>
@@ -703,10 +781,14 @@ const TaskCard = ({
 
 // --- Main App ---
 
-export default function App() {
+const AppContent = () => {
+  const { isDarkMode, toggleTheme } = useTheme();
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem('pcons_isLoggedIn') === 'true';
   });
+
+  const t = (dark: string, light: string) => isDarkMode ? dark : light;
+
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const [lastCloudSync, setLastCloudSync] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -765,6 +847,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('pcons_activeProject', activeProject);
   }, [activeProject]);
+
+  useEffect(() => {
+    localStorage.setItem('pcons_isDarkMode', JSON.stringify(isDarkMode));
+  }, [isDarkMode]);
 
   // Supabase Syncing
   useEffect(() => {
@@ -1369,12 +1455,18 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-[#0f1115] text-slate-200 font-sans selection:bg-blue-500/30">
+    <div className={cn(
+      "flex h-screen font-sans selection:bg-blue-500/30 transition-colors duration-300",
+      isDarkMode ? "bg-[#0f1115] text-slate-200" : "light bg-slate-50 text-slate-900"
+    )}>
       {/* Sidebar */}
-      <aside className="w-64 border-r border-slate-800 flex flex-col bg-[#0a0c10] relative z-40">
+      <aside className={cn(
+        "w-64 border-r flex flex-col relative z-40 transition-colors duration-300",
+        isDarkMode ? "bg-[#0a0c10] border-slate-800" : "bg-white border-slate-200"
+      )}>
         <div className="p-6 flex items-center">
           <div className="flex items-center gap-1.5">
-            <span className="text-xl font-semibold tracking-tight text-white">P</span>
+            <span className={cn("text-xl font-semibold tracking-tight", isDarkMode ? "text-white" : "text-slate-900")}>P</span>
             <div className="flex items-center gap-1 px-0.5">
               <div className="flex flex-col gap-1">
                 <div className="w-1.5 h-1.5 bg-[#9b2226] rounded-full" />
@@ -1382,13 +1474,13 @@ export default function App() {
               </div>
               <div className="w-1.5 h-1.5 bg-[#9b2226] rounded-full" />
             </div>
-            <span className="text-xl font-semibold tracking-tight text-white">CONS</span>
+            <span className={cn("text-xl font-semibold tracking-tight", isDarkMode ? "text-white" : "text-slate-900")}>CONS</span>
           </div>
         </div>
 
         <nav className="flex-1 px-4 space-y-8 overflow-y-auto py-4">
           <div>
-            <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Main</p>
+            <p className={cn("px-3 text-[10px] font-bold uppercase tracking-widest mb-3", isDarkMode ? "text-slate-500" : "text-slate-400")}>Main</p>
             <div className="space-y-1">
               <SidebarItem 
                 icon={LayoutDashboard} 
@@ -1413,10 +1505,10 @@ export default function App() {
 
           <div>
             <div className="px-3 flex justify-between items-center mb-3">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Projects</p>
+              <p className={cn("text-[10px] font-bold uppercase tracking-widest", isDarkMode ? "text-slate-500" : "text-slate-400")}>Projects</p>
               <button 
                 onClick={() => setIsProjectModalOpen(true)}
-                className="text-slate-500 hover:text-white transition-colors"
+                className={cn("transition-colors", isDarkMode ? "text-slate-500 hover:text-white" : "text-slate-400 hover:text-slate-900")}
               >
                 <Plus size={14} />
               </button>
@@ -1438,14 +1530,14 @@ export default function App() {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-slate-800 space-y-2">
-          <button className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-500 hover:text-white flex items-center gap-2 w-full px-4">
+        <div className={cn("p-4 border-t space-y-2", isDarkMode ? "border-slate-800" : "border-slate-100")}>
+          <button className={cn("p-2 rounded-lg transition-colors flex items-center gap-2 w-full px-4", isDarkMode ? "hover:bg-white/5 text-slate-500 hover:text-white" : "hover:bg-slate-50 text-slate-500 hover:text-slate-900")}>
             <Settings size={18} />
             <span className="text-sm font-medium">Impostazioni</span>
           </button>
           <button 
             onClick={handleLogout}
-            className="p-2 rounded-lg hover:bg-rose-500/10 transition-colors text-slate-500 hover:text-rose-400 flex items-center gap-2 w-full px-4"
+            className={cn("p-2 rounded-lg transition-colors flex items-center gap-2 w-full px-4", isDarkMode ? "hover:bg-rose-500/10 text-slate-500 hover:text-rose-400" : "hover:bg-rose-50 text-slate-500 hover:text-rose-600")}
           >
             <Lock size={18} />
             <span className="text-sm font-medium">Logout</span>
@@ -1456,20 +1548,39 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-bottom border-slate-800 flex items-center justify-between px-8 bg-[#0f1115]/80 backdrop-blur-md sticky top-0 z-10">
+        <header className={cn(
+          "h-16 border-b flex items-center justify-between px-8 backdrop-blur-md sticky top-0 z-10 transition-colors duration-300",
+          isDarkMode ? "bg-[#0f1115]/80 border-slate-800" : "bg-white/80 border-slate-200"
+        )}>
           <div className="flex items-center gap-4 flex-1">
             <div className="relative w-full max-w-md group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={16} />
+              <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 transition-colors", isDarkMode ? "text-slate-500 group-focus-within:text-blue-400" : "text-slate-400 group-focus-within:text-blue-600")} size={16} />
               <input 
                 type="text" 
                 placeholder="Search tasks, projects..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900/50 border border-slate-800 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                className={cn(
+                  "w-full border rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 transition-all",
+                  isDarkMode 
+                    ? "bg-slate-900/50 border-slate-800 text-white focus:border-blue-500/50 focus:ring-blue-500/20" 
+                    : "bg-slate-100 border-slate-200 text-slate-900 focus:border-blue-400 focus:ring-blue-400/20"
+                )}
               />
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <button 
+              onClick={toggleTheme}
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                isDarkMode ? "hover:bg-white/5 text-slate-400" : "hover:bg-slate-100 text-slate-600"
+              )}
+              title={isDarkMode ? "Passa a modalità chiara" : "Passa a modalità scura"}
+            >
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
             {isSupabaseConfigured() ? (
               <div className="flex items-center gap-2">
                 <div className={cn(
@@ -1586,7 +1697,7 @@ export default function App() {
                       {newTask.subtasks.map(sub => (
                         <div key={sub.id} className="flex items-center justify-between bg-slate-800/50 border border-slate-700/50 px-3 py-1.5 rounded-lg group">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-300">{sub.title}</span>
+                            <span className="text-sm font-bold text-slate-300">{sub.title}</span>
                             {sub.assignee && (
                               <div className="flex items-center gap-1 bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-700/50">
                                 <UserAvatar className="w-3 h-3" size={8} />
@@ -1737,22 +1848,28 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6"
+                className={cn(
+                  "relative w-full max-w-md border rounded-2xl shadow-2xl p-6",
+                  isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                )}
               >
-                <h3 className="text-xl font-bold text-white mb-6">{editingProjectId ? 'Edit Project' : 'Create New Project'}</h3>
+                <h3 className={cn("text-xl font-bold mb-6", isDarkMode ? "text-white" : "text-slate-900")}>{editingProjectId ? 'Edit Project' : 'Create New Project'}</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Project Name</label>
+                    <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Project Name</label>
                     <input 
                       type="text" 
                       value={newProject.name}
                       onChange={e => setNewProject({...newProject, name: e.target.value})}
                       placeholder="e.g., Marketing Q2"
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                      className={cn(
+                        "w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors",
+                        isDarkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                      )}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Project Color</label>
+                    <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Project Color</label>
                     <div className="flex gap-3">
                       {['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'].map(color => (
                         <button
@@ -1760,7 +1877,7 @@ export default function App() {
                           onClick={() => setNewProject({...newProject, color})}
                           className={cn(
                             "w-8 h-8 rounded-full border-2 transition-all",
-                            newProject.color === color ? "border-white scale-110" : "border-transparent hover:scale-105"
+                            newProject.color === color ? (isDarkMode ? "border-white scale-110" : "border-slate-900 scale-110") : "border-transparent hover:scale-105"
                           )}
                           style={{ backgroundColor: color }}
                         />
@@ -1768,7 +1885,7 @@ export default function App() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Icon</label>
+                    <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Icon</label>
                     <div className="flex gap-3">
                       {['Layout', 'Smartphone', 'Megaphone'].map(icon => (
                         <button
@@ -1778,7 +1895,7 @@ export default function App() {
                             "p-3 rounded-lg border transition-all",
                             newProject.icon === icon 
                               ? "bg-blue-600/20 border-blue-500 text-blue-400" 
-                              : "bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300"
+                              : (isDarkMode ? "bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300" : "bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-600")
                           )}
                         >
                           {React.createElement(getIcon(icon), { size: 20 })}
@@ -1794,7 +1911,10 @@ export default function App() {
                       setEditingProjectId(null);
                       setNewProject({ name: '', color: '#3b82f6', icon: 'Layout' });
                     }}
-                    className="flex-1 px-4 py-2 rounded-lg border border-slate-700 text-sm font-semibold text-slate-400 hover:bg-slate-800 transition-colors"
+                    className={cn(
+                      "flex-1 px-4 py-2 rounded-lg border text-sm font-semibold transition-colors",
+                      isDarkMode ? "border-slate-700 text-slate-400 hover:bg-slate-800" : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                    )}
                   >
                     Cancel
                   </button>
@@ -1822,16 +1942,19 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 text-center"
+                className={cn(
+                  "relative w-full max-w-sm border rounded-2xl shadow-2xl p-6 text-center",
+                  isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                )}
               >
                 <div className="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <AlertCircle size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{alertModal.title}</h3>
-                <p className="text-sm text-slate-400 mb-6">{alertModal.message}</p>
+                <h3 className={cn("text-lg font-bold mb-2", isDarkMode ? "text-white" : "text-slate-900")}>{alertModal.title}</h3>
+                <p className={cn("text-sm mb-6", isDarkMode ? "text-slate-400" : "text-slate-500")}>{alertModal.message}</p>
                 <button 
                   onClick={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
-                  className="w-full px-4 py-2 rounded-lg bg-slate-800 text-sm font-semibold text-white hover:bg-slate-700 transition-colors"
+                  className={cn("w-full px-4 py-2 rounded-lg text-sm font-semibold transition-colors", isDarkMode ? "bg-slate-800 text-white hover:bg-slate-700" : "bg-slate-100 text-slate-900 hover:bg-slate-200")}
                 >
                   OK
                 </button>
@@ -1852,17 +1975,20 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 text-center"
+                className={cn(
+                  "relative w-full max-w-sm border rounded-2xl shadow-2xl p-6 text-center",
+                  isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                )}
               >
                 <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Trash2 size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{confirmModal.title}</h3>
-                <p className="text-sm text-slate-400 mb-6">{confirmModal.message}</p>
+                <h3 className={cn("text-lg font-bold mb-2", isDarkMode ? "text-white" : "text-slate-900")}>{confirmModal.title}</h3>
+                <p className={cn("text-sm mb-6", isDarkMode ? "text-slate-400" : "text-slate-500")}>{confirmModal.message}</p>
                 <div className="flex gap-3">
                   <button 
                     onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                    className="flex-1 px-4 py-2 rounded-lg border border-slate-700 text-sm font-semibold text-slate-400 hover:bg-slate-800 transition-colors"
+                    className={cn("flex-1 px-4 py-2 rounded-lg border text-sm font-semibold transition-colors", isDarkMode ? "border-slate-700 text-slate-400 hover:bg-slate-800" : "border-slate-200 text-slate-500 hover:bg-slate-50")}
                   >
                     Cancel
                   </button>
@@ -1883,7 +2009,7 @@ export default function App() {
           <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
             <span>Projects</span>
             <ChevronRight size={12} />
-            <span className="text-slate-300 font-medium">{currentProject.name}</span>
+            <span className={cn("font-medium", isDarkMode ? "text-slate-300" : "text-slate-600")}>{currentProject.name}</span>
           </div>
           
           <div className="flex items-end justify-between mb-8">
@@ -1892,12 +2018,15 @@ export default function App() {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-inner" style={{ backgroundColor: currentProject.color }}>
                   {React.createElement(getIcon(currentProject.icon), { size: 24 })}
                 </div>
-                <h2 className="text-3xl font-bold text-white tracking-tight">{currentProject.name}</h2>
+                <h2 className={cn("text-3xl font-bold tracking-tight", isDarkMode ? "text-white" : "text-slate-900")}>{currentProject.name}</h2>
               </div>
-              <p className="text-slate-400 text-sm">Manage your team tasks and project milestones.</p>
+              <p className={cn("text-sm", isDarkMode ? "text-slate-400" : "text-slate-500")}>Manage your team tasks and project milestones.</p>
             </div>
 
-            <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-800 shadow-xl">
+            <div className={cn(
+              "flex p-1 rounded-xl border shadow-xl",
+              isDarkMode ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200"
+            )}>
               {[
                 { id: 'kanban', icon: LayoutDashboard, label: 'Board' },
                 { id: 'list', icon: ListTodo, label: 'List' },
@@ -1910,8 +2039,8 @@ export default function App() {
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
                     view === v.id 
-                      ? "bg-slate-800 text-white shadow-sm" 
-                      : "text-slate-500 hover:text-slate-300"
+                      ? (isDarkMode ? "bg-slate-800 text-white shadow-sm" : "bg-slate-100 text-slate-900 shadow-sm") 
+                      : (isDarkMode ? "text-slate-500 hover:text-slate-300" : "text-slate-400 hover:text-slate-600")
                   )}
                 >
                   <v.icon size={16} />
@@ -1921,7 +2050,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between py-4 border-y border-slate-800/50">
+          <div className={cn("flex items-center justify-between py-4 border-y", isDarkMode ? "border-slate-800/50" : "border-slate-200")}>
             <div className="flex items-center gap-6">
               <div className="relative">
                 <button 
@@ -1930,7 +2059,7 @@ export default function App() {
                     "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
                     isFilterOpen || filters.priority !== 'all' || filters.status !== 'all' || filters.assigneeId !== 'all'
                       ? "bg-blue-600/10 text-blue-400 border border-blue-500/20"
-                      : "text-slate-400 hover:text-white border border-transparent"
+                      : (isDarkMode ? "text-slate-400 hover:text-white border border-transparent" : "text-slate-500 hover:text-slate-900 border border-transparent")
                   )}
                 >
                   <Filter size={16} />
@@ -1946,10 +2075,13 @@ export default function App() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute left-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-4 space-y-4"
+                      className={cn(
+                        "absolute left-0 mt-2 w-64 border rounded-xl shadow-2xl z-50 p-4 space-y-4",
+                        isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                      )}
                     >
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Priority</label>
+                        <label className={cn("block text-[10px] font-bold uppercase tracking-widest mb-2", isDarkMode ? "text-slate-500" : "text-slate-400")}>Priority</label>
                         <div className="flex flex-wrap gap-2">
                           {['all', 'low', 'medium', 'high'].map(p => (
                             <button
@@ -1959,7 +2091,7 @@ export default function App() {
                                 "px-2 py-1 rounded text-[10px] font-semibold capitalize transition-all",
                                 filters.priority === p 
                                   ? "bg-blue-600 text-white" 
-                                  : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                                  : (isDarkMode ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-500 hover:bg-slate-200")
                               )}
                             >
                               {p}
@@ -1969,11 +2101,14 @@ export default function App() {
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Status</label>
+                        <label className={cn("block text-[10px] font-bold uppercase tracking-widest mb-2", isDarkMode ? "text-slate-500" : "text-slate-400")}>Status</label>
                         <select
                           value={filters.status}
                           onChange={(e) => setFilters({ ...filters, status: e.target.value as any })}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+                          className={cn(
+                            "w-full rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500",
+                            isDarkMode ? "bg-slate-800 border-slate-700 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-700"
+                          )}
                         >
                           <option value="all">All Statuses</option>
                           <option value="todo">To Do</option>
@@ -1984,11 +2119,14 @@ export default function App() {
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Responsabile</label>
+                        <label className={cn("block text-[10px] font-bold uppercase tracking-widest mb-2", isDarkMode ? "text-slate-500" : "text-slate-400")}>Responsabile</label>
                         <select
                           value={filters.assigneeId}
                           onChange={(e) => setFilters({ ...filters, assigneeId: e.target.value })}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+                          className={cn(
+                            "w-full rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500",
+                            isDarkMode ? "bg-slate-800 border-slate-700 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-700"
+                          )}
                         >
                           <option value="all">All Members</option>
                           {teamMembers.map(m => (
@@ -1999,7 +2137,10 @@ export default function App() {
 
                       <button 
                         onClick={() => setFilters({ priority: 'all', status: 'all', assigneeId: 'all' })}
-                        className="w-full py-2 text-[10px] font-bold text-slate-500 hover:text-rose-400 uppercase tracking-widest transition-colors border-t border-slate-800 pt-3"
+                        className={cn(
+                          "w-full py-2 text-[10px] font-bold uppercase tracking-widest transition-colors border-t pt-3",
+                          isDarkMode ? "text-slate-500 hover:text-rose-400 border-slate-800" : "text-slate-400 hover:text-rose-500 border-slate-100"
+                        )}
                       >
                         Reset Filters
                       </button>
@@ -2040,7 +2181,7 @@ export default function App() {
         </div>
 
         {/* View Content */}
-        <div className="flex-1 overflow-x-auto overflow-y-hidden px-8 pb-8">
+        <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar px-8 pb-8">
           <AnimatePresence mode="wait">
             {view === 'calendar' && (
               <motion.div 
@@ -2059,13 +2200,13 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-8"
+                className="h-full overflow-y-auto custom-scrollbar p-8"
               >
                 <div className="flex justify-between items-center mb-8">
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Team Members</h2>
-                    <p className="text-slate-400 text-sm">
-                      Active sub-tasks for project: <span className="text-blue-400 font-semibold">{projects.find(p => p.id === activeProject)?.name}</span>
+                    <h2 className={cn("text-2xl font-bold", isDarkMode ? "text-white" : "text-slate-900")}>Team Members</h2>
+                    <p className={cn("text-sm", isDarkMode ? "text-slate-400" : "text-slate-500")}>
+                      Active sub-tasks for project: <span className={cn("font-semibold", isDarkMode ? "text-blue-400" : "text-blue-600")}>{projects.find(p => p.id === activeProject)?.name}</span>
                     </p>
                   </div>
                   <button 
@@ -2094,36 +2235,42 @@ export default function App() {
                     ).length;
 
                     return (
-                      <div key={member.id} className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-all group flex flex-col">
+                      <div key={member.id} className={cn(
+                        "border rounded-2xl p-6 transition-all group flex flex-col",
+                        isDarkMode ? "bg-slate-900/50 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"
+                      )}>
                         <div className="flex items-center gap-4 mb-6">
-                          <UserAvatar className="w-16 h-16 border-2 border-slate-800" size={32} />
+                          <UserAvatar className={cn("w-16 h-16 border-2", isDarkMode ? "border-slate-800" : "border-slate-100")} size={32} />
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-bold text-white truncate">{member.name}</h3>
-                            <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">Team Member</p>
+                            <h3 className={cn("text-lg font-bold truncate", isDarkMode ? "text-white" : "text-slate-900")}>{member.name}</h3>
+                            <p className={cn("text-xs uppercase tracking-widest font-bold", isDarkMode ? "text-slate-500" : "text-slate-400")}>Team Member</p>
                           </div>
                         </div>
 
                         <div className="flex-1 space-y-3 mb-6">
-                          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Active Sub-tasks</p>
+                          <p className={cn("text-[10px] font-bold uppercase tracking-wider", isDarkMode ? "text-slate-600" : "text-slate-400")}>Active Sub-tasks</p>
                           {memberSubtasks.length > 0 ? (
                             <div className="space-y-2">
                               {memberSubtasks.map(sub => (
-                                <div key={sub.id} className="bg-slate-900/80 border border-slate-800/50 rounded-lg p-2.5 space-y-1">
+                                <div key={sub.id} className={cn(
+                                  "border rounded-lg p-2.5 space-y-1",
+                                  isDarkMode ? "bg-slate-900/80 border-slate-800/50" : "bg-slate-50 border-slate-200"
+                                )}>
                                   <div className="flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                    <p className="text-[11px] text-slate-200 font-medium leading-tight">{sub.title}</p>
+                                    <p className={cn("text-xs font-bold leading-tight", isDarkMode ? "text-slate-200" : "text-slate-700")}>{sub.title}</p>
                                   </div>
-                                  <p className="text-[9px] text-slate-500 italic pl-3.5">in: {sub.parentTaskTitle}</p>
+                                  <p className={cn("text-[9px] italic pl-3.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>in: {sub.parentTaskTitle}</p>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[10px] text-slate-700 italic">No active sub-tasks in this project</p>
+                            <p className={cn("text-[10px] italic", isDarkMode ? "text-slate-700" : "text-slate-300")}>No active sub-tasks in this project</p>
                           )}
                         </div>
                         
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-800/50">
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <div className={cn("flex items-center justify-between pt-4 border-t", isDarkMode ? "border-slate-800/50" : "border-slate-100")}>
+                          <div className={cn("flex items-center gap-2 text-xs", isDarkMode ? "text-slate-400" : "text-slate-500")}>
                             <ListTodo size={14} />
                             <span>{memberActiveTasksCount} Active Tasks</span>
                           </div>
@@ -2175,12 +2322,12 @@ export default function App() {
                           ) : (
                             <h3 
                               onClick={() => setEditingColumn(col.id)}
-                              className="font-bold text-slate-200 text-sm uppercase tracking-wider cursor-pointer hover:text-blue-400 transition-colors"
+                              className={cn("font-bold text-sm uppercase tracking-wider cursor-pointer transition-colors", isDarkMode ? "text-slate-200 hover:text-blue-400" : "text-slate-900 hover:text-blue-600")}
                             >
                               {col.label}
                             </h3>
                           )}
-                          <span className="bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                          <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold", isDarkMode ? "bg-slate-800 text-slate-500" : "bg-slate-200 text-slate-500")}>
                             {filteredTasks.filter(t => t.status === col.id).length}
                           </span>
                         </div>
@@ -2189,7 +2336,7 @@ export default function App() {
                             setNewTask(prev => ({ ...prev, status: col.id }));
                             setIsModalOpen(true);
                           }}
-                          className="text-slate-600 hover:text-slate-400"
+                          className={cn("transition-colors", isDarkMode ? "text-slate-600 hover:text-slate-400" : "text-slate-400 hover:text-slate-600")}
                         >
                           <Plus size={16} />
                         </button>
@@ -2202,7 +2349,7 @@ export default function App() {
                             ref={provided.innerRef}
                             className={cn(
                               "flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar rounded-xl transition-colors",
-                              snapshot.isDraggingOver ? "bg-slate-800/20" : "bg-transparent"
+                              snapshot.isDraggingOver ? (isDarkMode ? "bg-slate-800/20" : "bg-slate-200/50") : "bg-transparent"
                             )}
                           >
                             {filteredTasks.filter(t => t.status === col.id).map((task, index) => (
@@ -2286,7 +2433,7 @@ export default function App() {
                                 {sub.completed && <CheckCircle2 size={8} className="text-white" />}
                               </button>
                               <span className={cn(
-                                "text-[11px] transition-all",
+                                "text-sm font-bold transition-all",
                                 sub.completed ? "text-slate-600 line-through" : "text-slate-400"
                               )}>
                                 {sub.title}
@@ -2307,7 +2454,7 @@ export default function App() {
                         <div className="mt-4 space-y-2 pl-4 border-l border-blue-500/20">
                           <p className="text-[9px] font-bold text-blue-500/50 uppercase tracking-wider mb-1">Comments</p>
                           {task.comments.map(comment => (
-                            <div key={comment.id} className="flex items-start gap-2 text-[10px] text-slate-400 bg-slate-900/30 p-2 rounded-lg border border-slate-800/30">
+                            <div key={comment.id} className="flex items-start gap-2 text-sm font-bold text-slate-400 bg-slate-900/30 p-2 rounded-lg border border-slate-800/30">
                               <MessageSquare size={10} className="mt-0.5 text-blue-400/50 shrink-0" />
                               <span className="leading-relaxed">{comment.text}</span>
                             </div>
@@ -2353,37 +2500,40 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="w-full bg-slate-900/30 border border-slate-800 rounded-2xl overflow-hidden"
+                className={cn(
+                  "w-full border rounded-2xl overflow-hidden",
+                  isDarkMode ? "bg-slate-900/30 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                )}
               >
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-900/50">
-                      <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Task Name</th>
-                      <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Status</th>
-                      <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Priorità</th>
-                      <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Responsabile</th>
-                      <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Scadenza</th>
-                      <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Commento</th>
-                      <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px] text-right">Actions</th>
+                    <tr className={cn("border-b", isDarkMode ? "border-slate-800 bg-slate-900/50" : "border-slate-100 bg-slate-50")}>
+                      <th className={cn("px-6 py-4 font-bold uppercase tracking-wider text-[10px]", isDarkMode ? "text-slate-400" : "text-slate-500")}>Task Name</th>
+                      <th className={cn("px-6 py-4 font-bold uppercase tracking-wider text-[10px]", isDarkMode ? "text-slate-400" : "text-slate-500")}>Status</th>
+                      <th className={cn("px-6 py-4 font-bold uppercase tracking-wider text-[10px]", isDarkMode ? "text-slate-400" : "text-slate-500")}>Priorità</th>
+                      <th className={cn("px-6 py-4 font-bold uppercase tracking-wider text-[10px]", isDarkMode ? "text-slate-400" : "text-slate-500")}>Responsabile</th>
+                      <th className={cn("px-6 py-4 font-bold uppercase tracking-wider text-[10px]", isDarkMode ? "text-slate-400" : "text-slate-500")}>Scadenza</th>
+                      <th className={cn("px-6 py-4 font-bold uppercase tracking-wider text-[10px]", isDarkMode ? "text-slate-400" : "text-slate-500")}>Commento</th>
+                      <th className={cn("px-6 py-4 font-bold uppercase tracking-wider text-[10px] text-right", isDarkMode ? "text-slate-400" : "text-slate-500")}>Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/50">
+                  <tbody className={cn("divide-y", isDarkMode ? "divide-slate-800/50" : "divide-slate-100")}>
                     {filteredTasks.map(task => (
-                      <tr key={task.id} className="hover:bg-white/5 transition-colors group">
+                      <tr key={task.id} className={cn("transition-colors group", isDarkMode ? "hover:bg-white/5" : "hover:bg-slate-50")}>
                         <td className="px-6 py-4">
                           <div className="flex items-start gap-3">
                             <button 
                               onClick={() => toggleTaskStatus(task.id)}
                               className={cn(
                                 "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors mt-0.5 shrink-0",
-                                task.status === 'done' ? "bg-emerald-500 border-emerald-500" : "border-slate-700 hover:border-slate-500"
+                                task.status === 'done' ? "bg-emerald-500 border-emerald-500" : (isDarkMode ? "border-slate-700 hover:border-slate-500" : "border-slate-300 hover:border-slate-400")
                               )}
                             >
                               {task.status === 'done' && <CheckCircle2 size={12} className="text-white" />}
                             </button>
                             <div className="flex-1">
-                              <div className={cn("font-semibold text-slate-200", task.status === 'done' && "text-slate-500 line-through")}>{task.title}</div>
-                              <div className="text-[10px] text-slate-500 truncate max-w-[200px] mb-2">{task.description}</div>
+                              <div className={cn("font-semibold", isDarkMode ? (task.status === 'done' ? "text-slate-500 line-through" : "text-slate-200") : (task.status === 'done' ? "text-slate-400 line-through" : "text-slate-900"))}>{task.title}</div>
+                              <div className={cn("text-[10px] truncate max-w-[200px] mb-2", isDarkMode ? "text-slate-500" : "text-slate-400")}>{task.description}</div>
                             </div>
                           </div>
                           {task.subtasks && task.subtasks.length > 0 && (
@@ -2399,14 +2549,14 @@ export default function App() {
                                       "w-3 h-3 rounded-sm border flex items-center justify-center transition-all",
                                       sub.completed 
                                         ? "bg-blue-500 border-blue-500" 
-                                        : "border-slate-700 group-hover/sub:border-slate-500"
+                                        : (isDarkMode ? "border-slate-700 group-hover/sub:border-slate-500" : "border-slate-300 group-hover/sub:border-slate-400")
                                     )}
                                   >
                                     {sub.completed && <CheckCircle2 size={8} className="text-white" />}
                                   </button>
                                   <span className={cn(
-                                    "text-[10px] transition-all flex-1",
-                                    sub.completed ? "text-slate-600 line-through" : "text-slate-400"
+                                    "text-xs font-bold transition-all flex-1",
+                                    sub.completed ? (isDarkMode ? "text-slate-600 line-through" : "text-slate-400 line-through") : (isDarkMode ? "text-slate-400" : "text-slate-600")
                                   )}>
                                     {sub.title}
                                   </span>
@@ -2421,11 +2571,11 @@ export default function App() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <div className={cn("w-2 h-2 rounded-full", 
-                              task.status === 'todo' ? "bg-slate-500" :
+                              task.status === 'todo' ? (isDarkMode ? "bg-slate-500" : "bg-slate-400") :
                               task.status === 'in-progress' ? "bg-blue-500" :
                               task.status === 'review' ? "bg-amber-500" : "bg-emerald-500"
                             )}></div>
-                            <span className="capitalize text-xs font-medium text-slate-400">{task.status.replace('-', ' ')}</span>
+                            <span className={cn("capitalize text-xs font-medium", isDarkMode ? "text-slate-400" : "text-slate-600")}>{task.status.replace('-', ' ')}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -2434,32 +2584,32 @@ export default function App() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <UserAvatar className="w-6 h-6" size={14} />
-                            <span className="text-xs text-slate-400">{task.assignee.name}</span>
+                            <span className={cn("text-xs", isDarkMode ? "text-slate-400" : "text-slate-600")}>{task.assignee.name}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-xs text-slate-500 font-mono">
+                        <td className={cn("px-6 py-4 text-xs font-mono", isDarkMode ? "text-slate-500" : "text-slate-400")}>
                           {task.dueDate}
                         </td>
-                        <td className="px-6 py-4 text-xs text-slate-400 italic max-w-[200px] truncate">
+                        <td className={cn("px-6 py-4 text-xs italic max-w-[200px] truncate", isDarkMode ? "text-slate-400" : "text-slate-500")}>
                           {task.comments && task.comments.length > 0 ? task.comments[task.comments.length - 1].text : '-'}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                             <button 
                               onClick={() => openEditModal(task)}
-                              className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-md transition-all"
+                              className={cn("p-1.5 rounded-md transition-all", isDarkMode ? "text-slate-500 hover:text-blue-400 hover:bg-blue-400/10" : "text-slate-400 hover:text-blue-600 hover:bg-blue-50")}
                             >
                               <Edit2 size={14} />
                             </button>
                             <button 
                               onClick={() => duplicateTask(task)}
-                              className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-md transition-all"
+                              className={cn("p-1.5 rounded-md transition-all", isDarkMode ? "text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10" : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50")}
                             >
                               <Copy size={14} />
                             </button>
                             <button 
                               onClick={() => deleteTask(task.id)}
-                              className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 rounded-md transition-all"
+                              className={cn("p-1.5 rounded-md transition-all", isDarkMode ? "text-slate-500 hover:text-rose-400 hover:bg-rose-400/10" : "text-slate-400 hover:text-rose-600 hover:bg-rose-50")}
                             >
                               <Trash2 size={14} />
                             </button>
@@ -2491,5 +2641,13 @@ export default function App() {
         }
       `}} />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
