@@ -670,7 +670,15 @@ const TaskCard = ({
                     {sub.title}
                   </span>
                   {sub.assignee && (
-                    <UserAvatar className="ml-auto w-4 h-4" size={10} />
+                    <div className={cn(
+                      "flex items-center gap-1 ml-auto px-1.5 py-0.5 rounded-full border",
+                      isDarkMode 
+                        ? "bg-slate-900/50 border-slate-800/50" 
+                        : "bg-slate-50 border-slate-100"
+                    )}>
+                      <UserAvatar className="w-3 h-3" size={8} />
+                      <span className={cn("text-[8px] font-medium", isDarkMode ? "text-slate-500" : "text-slate-600")}>{sub.assignee.name}</span>
+                    </div>
                   )}
                 </button>
               ))}
@@ -2395,19 +2403,36 @@ const AppContent = () => {
                 className="max-w-4xl mx-auto w-full space-y-4 py-4"
               >
                 {filteredTasks.map(task => (
-                  <div key={task.id} className="bg-slate-800/30 border border-slate-800 p-4 rounded-xl flex items-start gap-4 hover:border-slate-700 transition-all group">
+                  <div key={task.id} className={cn(
+                    "p-4 rounded-xl flex items-start gap-4 transition-all group border",
+                    isDarkMode 
+                      ? "bg-slate-800/30 border-slate-800 hover:border-slate-700" 
+                      : "bg-white border-slate-200 shadow-sm hover:border-slate-300"
+                  )}>
                     <button 
                       onClick={() => toggleTaskStatus(task.id)}
                       className={cn(
                         "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors mt-1 shrink-0",
-                        task.status === 'done' ? "bg-emerald-500 border-emerald-500" : "border-slate-700 hover:border-slate-500"
+                        task.status === 'done' 
+                          ? "bg-emerald-500 border-emerald-500" 
+                          : (isDarkMode ? "border-slate-700 hover:border-slate-500" : "border-slate-300 hover:border-slate-400")
                       )}
                     >
                       {task.status === 'done' && <CheckCircle2 size={12} className="text-white" />}
                     </button>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <h4 className={cn("font-semibold text-sm cursor-pointer hover:text-blue-400 transition-colors", task.status === 'done' && "text-slate-500 line-through")} onClick={() => openEditModal(task)}>{task.title}</h4>
+                        <h4 
+                          className={cn(
+                            "font-bold text-sm cursor-pointer hover:text-blue-400 transition-colors", 
+                            isDarkMode 
+                              ? (task.status === 'done' ? "text-slate-500 line-through" : "text-white") 
+                              : (task.status === 'done' ? "text-slate-400 line-through" : "text-slate-900")
+                          )} 
+                          onClick={() => openEditModal(task)}
+                        >
+                          {task.title}
+                        </h4>
                         {task.comments && task.comments.length > 0 && (
                           <div className="flex items-center gap-1 text-[10px] text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded-full">
                             <MessageSquare size={10} />
@@ -2415,33 +2440,45 @@ const AppContent = () => {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mb-3">{task.description}</p>
+                      <p className={cn("text-xs mb-3", isDarkMode ? "text-slate-500" : "text-slate-600 font-medium")}>{task.description}</p>
                       
                       {/* Sub-tasks */}
                       {task.subtasks && task.subtasks.length > 0 && (
-                        <div className="mt-3 space-y-2 pl-4 border-l border-slate-800/50">
-                          <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-1">Sub-tasks</p>
+                        <div className={cn(
+                          "mt-3 space-y-2 pl-4 border-l",
+                          isDarkMode ? "border-slate-800/50" : "border-slate-100"
+                        )}>
+                          <p className={cn("text-[9px] font-bold uppercase tracking-wider mb-1", isDarkMode ? "text-slate-600" : "text-slate-400")}>Sub-tasks</p>
                           {task.subtasks.map(sub => (
                             <div key={sub.id} className="flex items-center gap-3">
                               <button 
                                 onClick={() => toggleSubtask(task.id, sub.id)}
                                 className={cn(
                                   "w-3 h-3 rounded-sm border flex items-center justify-center transition-all shrink-0",
-                                  sub.completed ? "bg-blue-500 border-blue-500" : "border-slate-700 hover:border-slate-500"
+                                  sub.completed 
+                                    ? "bg-blue-500 border-blue-500" 
+                                    : (isDarkMode ? "border-slate-700 hover:border-slate-500" : "border-slate-300 hover:border-slate-400")
                                 )}
                               >
                                 {sub.completed && <CheckCircle2 size={8} className="text-white" />}
                               </button>
                               <span className={cn(
                                 "text-sm font-bold transition-all",
-                                sub.completed ? "text-slate-600 line-through" : "text-slate-400"
+                                sub.completed 
+                                  ? (isDarkMode ? "text-slate-600 line-through" : "text-slate-400 line-through") 
+                                  : (isDarkMode ? "text-slate-400" : "text-slate-800")
                               )}>
                                 {sub.title}
                               </span>
                               {sub.assignee && (
-                                <div className="flex items-center gap-1.5 ml-auto bg-slate-900/50 px-2 py-0.5 rounded-full border border-slate-800/50">
+                                <div className={cn(
+                                  "flex items-center gap-1.5 ml-auto px-2 py-0.5 rounded-full border",
+                                  isDarkMode 
+                                    ? "bg-slate-900/50 border-slate-800/50" 
+                                    : "bg-slate-50 border-slate-100"
+                                )}>
                                   <UserAvatar className="w-3 h-3" size={8} />
-                                  <span className="text-[9px] text-slate-500 font-medium">{sub.assignee.name}</span>
+                                  <span className={cn("text-[9px] font-medium", isDarkMode ? "text-slate-500" : "text-slate-600")}>{sub.assignee.name}</span>
                                 </div>
                               )}
                             </div>
@@ -2451,10 +2488,18 @@ const AppContent = () => {
 
                       {/* Comments */}
                       {task.comments && task.comments.length > 0 && (
-                        <div className="mt-4 space-y-2 pl-4 border-l border-blue-500/20">
-                          <p className="text-[9px] font-bold text-blue-500/50 uppercase tracking-wider mb-1">Comments</p>
+                        <div className={cn(
+                          "mt-4 space-y-2 pl-4 border-l",
+                          isDarkMode ? "border-blue-500/20" : "border-blue-100"
+                        )}>
+                          <p className={cn("text-[9px] font-bold uppercase tracking-wider mb-1", isDarkMode ? "text-blue-500/50" : "text-blue-400")}>Comments</p>
                           {task.comments.map(comment => (
-                            <div key={comment.id} className="flex items-start gap-2 text-sm font-bold text-slate-400 bg-slate-900/30 p-2 rounded-lg border border-slate-800/30">
+                            <div key={comment.id} className={cn(
+                              "flex items-start gap-2 text-sm font-bold p-2 rounded-lg border",
+                              isDarkMode 
+                                ? "text-slate-400 bg-slate-900/30 border-slate-800/30" 
+                                : "text-slate-700 bg-slate-50 border-slate-100"
+                            )}>
                               <MessageSquare size={10} className="mt-0.5 text-blue-400/50 shrink-0" />
                               <span className="leading-relaxed">{comment.text}</span>
                             </div>
@@ -2464,26 +2509,46 @@ const AppContent = () => {
                     </div>
                     <div className="flex flex-col items-end gap-3">
                       <PriorityBadge priority={task.priority} />
-                      <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium bg-slate-900 px-2 py-1 rounded-md border border-slate-800/50">
-                        <Calendar size={10} />
+                      <div className={cn(
+                        "flex items-center gap-2 text-[10px] font-bold px-2 py-1 rounded-md border",
+                        isDarkMode 
+                          ? "text-slate-400 bg-slate-900 border-slate-800/50" 
+                          : "text-slate-900 bg-white border-slate-200 shadow-sm"
+                      )}>
+                        <Calendar size={10} className={isDarkMode ? "text-slate-500" : "text-slate-400"} />
                         {task.dueDate}
                       </div>
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                         <button 
                           onClick={() => openEditModal(task)}
-                          className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-md transition-all"
+                          className={cn(
+                            "p-1.5 rounded-md transition-all",
+                            isDarkMode 
+                              ? "text-slate-500 hover:text-blue-400 hover:bg-blue-400/10" 
+                              : "text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                          )}
                         >
                           <Edit2 size={14} />
                         </button>
                         <button 
                           onClick={() => duplicateTask(task)}
-                          className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-md transition-all"
+                          className={cn(
+                            "p-1.5 rounded-md transition-all",
+                            isDarkMode 
+                              ? "text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10" 
+                              : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                          )}
                         >
                           <Copy size={14} />
                         </button>
                         <button 
                           onClick={() => deleteTask(task.id)}
-                          className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 rounded-md transition-all"
+                          className={cn(
+                            "p-1.5 rounded-md transition-all",
+                            isDarkMode 
+                              ? "text-slate-500 hover:text-rose-400 hover:bg-rose-400/10" 
+                              : "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                          )}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -2561,7 +2626,15 @@ const AppContent = () => {
                                     {sub.title}
                                   </span>
                                   {sub.assignee && (
-                                    <UserAvatar className="w-3.5 h-3.5 opacity-60 group-hover/sub:opacity-100 transition-opacity" size={10} />
+                                    <div className={cn(
+                                      "flex items-center gap-1 ml-auto px-1.5 py-0.5 rounded-full border",
+                                      isDarkMode 
+                                        ? "bg-slate-900/50 border-slate-800/50" 
+                                        : "bg-slate-50 border-slate-100"
+                                    )}>
+                                      <UserAvatar className="w-3 h-3" size={8} />
+                                      <span className={cn("text-[8px] font-medium", isDarkMode ? "text-slate-500" : "text-slate-600")}>{sub.assignee.name}</span>
+                                    </div>
                                   )}
                                 </div>
                               ))}
