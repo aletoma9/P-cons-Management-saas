@@ -1649,31 +1649,42 @@ const AppContent = () => {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6"
+                className={cn(
+                  "relative w-full max-w-md border rounded-2xl shadow-2xl p-6",
+                  isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                )}
               >
-                <h3 className="text-xl font-bold text-white mb-6">{editingTaskId ? 'Edit Task' : 'Create New Task'}</h3>
+                <h3 className={cn("text-xl font-bold mb-6", isDarkMode ? "text-white" : "text-slate-900")}>
+                  {editingTaskId ? 'Edit Task' : 'Create New Task'}
+                </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Task Title</label>
+                    <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Task Title</label>
                     <input 
                       type="text" 
                       value={newTask.title}
                       onChange={e => setNewTask({...newTask, title: e.target.value})}
                       placeholder="What needs to be done?"
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                      className={cn(
+                        "w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors",
+                        isDarkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                      )}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Description</label>
+                    <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Description</label>
                     <textarea 
                       value={newTask.description}
                       onChange={e => setNewTask({...newTask, description: e.target.value})}
                       placeholder="Add more details..."
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm h-20 resize-none focus:outline-none focus:border-blue-500 transition-colors"
+                      className={cn(
+                        "w-full border rounded-lg px-4 py-2 text-sm h-20 resize-none focus:outline-none focus:border-blue-500 transition-colors",
+                        isDarkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                      )}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Checklist (Sub-tasks)</label>
+                    <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Checklist (Sub-tasks)</label>
                     <div className="flex gap-2 mb-2">
                       <input 
                         type="text" 
@@ -1681,12 +1692,18 @@ const AppContent = () => {
                         onChange={e => setTempSubtask(e.target.value)}
                         onKeyPress={e => e.key === 'Enter' && addSubtask()}
                         placeholder="Add sub-task..."
-                        className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                        className={cn(
+                          "flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors",
+                          isDarkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                        )}
                       />
                       <select 
                         value={tempSubtaskAssigneeId}
                         onChange={e => setTempSubtaskAssigneeId(e.target.value)}
-                        className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-blue-500 transition-colors text-slate-300"
+                        className={cn(
+                          "border rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-blue-500 transition-colors",
+                          isDarkMode ? "bg-slate-800 border-slate-700 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-700"
+                        )}
                       >
                         <option value="">Assegna...</option>
                         {teamMembers.map(m => (
@@ -1703,19 +1720,25 @@ const AppContent = () => {
                     </div>
                     <div className="max-h-32 overflow-y-auto space-y-2 custom-scrollbar pr-1">
                       {newTask.subtasks.map(sub => (
-                        <div key={sub.id} className="flex items-center justify-between bg-slate-800/50 border border-slate-700/50 px-3 py-1.5 rounded-lg group">
+                        <div key={sub.id} className={cn(
+                          "flex items-center justify-between border px-3 py-1.5 rounded-lg group",
+                          isDarkMode ? "bg-slate-800/50 border-slate-700/50" : "bg-slate-50 border-slate-100"
+                        )}>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-slate-300">{sub.title}</span>
+                            <span className={cn("text-sm font-bold", isDarkMode ? "text-slate-300" : "text-slate-700")}>{sub.title}</span>
                             {sub.assignee && (
-                              <div className="flex items-center gap-1 bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-700/50">
+                              <div className={cn(
+                                "flex items-center gap-1 px-1.5 py-0.5 rounded border",
+                                isDarkMode ? "bg-slate-900/50 border-slate-700/50" : "bg-white border-slate-200"
+                              )}>
                                 <UserAvatar className="w-3 h-3" size={8} />
-                                <span className="text-[9px] text-slate-500 font-medium">{sub.assignee.name}</span>
+                                <span className={cn("text-[9px] font-medium", isDarkMode ? "text-slate-500" : "text-slate-500")}>{sub.assignee.name}</span>
                               </div>
                             )}
                           </div>
                           <button 
                             onClick={() => removeSubtask(sub.id)}
-                            className="text-slate-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all"
+                            className={cn("transition-all opacity-0 group-hover:opacity-100", isDarkMode ? "text-slate-600 hover:text-rose-400" : "text-slate-400 hover:text-rose-500")}
                           >
                             <Plus size={14} className="rotate-45" />
                           </button>
@@ -1725,11 +1748,14 @@ const AppContent = () => {
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Responsabile</label>
+                      <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Responsabile</label>
                       <select 
                         value={newTask.assigneeId}
                         onChange={e => setNewTask({...newTask, assigneeId: e.target.value})}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                        className={cn(
+                          "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors",
+                          isDarkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                        )}
                       >
                         {teamMembers.map(m => (
                           <option key={m.id} value={m.id}>{m.name}</option>
@@ -1737,11 +1763,14 @@ const AppContent = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Priorità</label>
+                      <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Priorità</label>
                       <select 
                         value={newTask.priority}
                         onChange={e => setNewTask({...newTask, priority: e.target.value as Priority})}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                        className={cn(
+                          "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors",
+                          isDarkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                        )}
                       >
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
@@ -1749,12 +1778,15 @@ const AppContent = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Scadenza</label>
+                      <label className={cn("block text-xs font-bold uppercase mb-1.5", isDarkMode ? "text-slate-500" : "text-slate-400")}>Scadenza</label>
                       <input 
                         type="date" 
                         value={newTask.dueDate}
                         onChange={e => setNewTask({...newTask, dueDate: e.target.value})}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                        className={cn(
+                          "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors",
+                          isDarkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                        )}
                       />
                     </div>
                   </div>
@@ -1762,7 +1794,10 @@ const AppContent = () => {
                 <div className="flex gap-3 mt-8">
                   <button 
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 px-4 py-2 rounded-lg border border-slate-700 text-sm font-semibold text-slate-400 hover:bg-slate-800 transition-colors"
+                    className={cn(
+                      "flex-1 px-4 py-2 rounded-lg border text-sm font-semibold transition-colors",
+                      isDarkMode ? "border-slate-700 text-slate-400 hover:bg-slate-800" : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    )}
                   >
                     Cancel
                   </button>
@@ -1791,13 +1826,16 @@ const AppContent = () => {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden"
+                className={cn(
+                  "relative w-full max-w-md border rounded-2xl shadow-2xl overflow-hidden",
+                  isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                )}
               >
-                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-white">
+                <div className={cn("p-6 border-b flex justify-between items-center", isDarkMode ? "border-slate-800" : "border-slate-100")}>
+                  <h3 className={cn("text-xl font-bold", isDarkMode ? "text-white" : "text-slate-900")}>
                     {editingMemberId ? 'Edit Member' : 'Add Team Member'}
                   </h3>
-                  <button onClick={() => setIsTeamModalOpen(false)} className="text-slate-500 hover:text-white">
+                  <button onClick={() => setIsTeamModalOpen(false)} className={cn("transition-colors", isDarkMode ? "text-slate-500 hover:text-white" : "text-slate-400 hover:text-slate-900")}>
                     <Plus size={24} className="rotate-45" />
                   </button>
                 </div>
@@ -1805,26 +1843,32 @@ const AppContent = () => {
                 <div className="p-6 space-y-6">
                   <div className="flex justify-center">
                     <div className="relative group">
-                      <UserAvatar className="w-24 h-24 border-4 border-slate-800" size={48} />
+                      <UserAvatar className={cn("w-24 h-24 border-4", isDarkMode ? "border-slate-800" : "border-slate-100")} size={48} />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Full Name</label>
+                    <label className={cn("text-xs font-bold uppercase tracking-widest", isDarkMode ? "text-slate-500" : "text-slate-400")}>Full Name</label>
                     <input 
                       type="text" 
                       placeholder="Enter member name" 
                       value={newMember.name}
                       onChange={(e) => setNewMember(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all"
+                      className={cn(
+                        "w-full border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-all",
+                        isDarkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                      )}
                     />
                   </div>
                 </div>
 
-                <div className="p-6 bg-slate-900/50 border-t border-slate-800 flex gap-3">
+                <div className={cn("p-6 border-t flex gap-3", isDarkMode ? "bg-slate-900/50 border-slate-800" : "bg-slate-50 border-slate-100")}>
                   <button 
                     onClick={() => setIsTeamModalOpen(false)}
-                    className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:bg-white/5 transition-all"
+                    className={cn(
+                      "flex-1 px-4 py-3 rounded-xl text-sm font-bold transition-all",
+                      isDarkMode ? "text-slate-400 hover:bg-white/5" : "text-slate-600 hover:bg-black/5"
+                    )}
                   >
                     Cancel
                   </button>
